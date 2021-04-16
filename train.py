@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import shutil
 
-
 from src.crowd_count import CrowdCounter
 from src import network
 from src.data_loader import ImageDataLoader
@@ -29,7 +28,6 @@ def log_print(text, color=None, on_color=None, attrs=None):
         cprint(text, color=color, on_color=on_color, attrs=attrs)
     else:
         print(text)
-
 
 # method = 'mcnn'
 method = 'mcnnandmnv1'
@@ -94,6 +92,8 @@ train_loss = 0
 step_cnt = 0
 re_cnt = False
 t = Timer()
+t.sleepseconds(1)
+print('dsa')
 # t.tic()
 ifpre_load = True
 data_loader = ImageDataLoader(train_path, train_gt_path, shuffle=True, gt_downsample=True, pre_load=ifpre_load)
@@ -189,6 +189,7 @@ finally:
         shutil.copyfile(os.path.join(output_dir,'{}_{}_{}.h5'.format(method, dataset_name, end_step)),
                         os.path.join(netparams_dir,'{}_{}_{}.h5'.format(method, dataset_name, end_step)))
     pic = ImageGrab.grab()
-    pic.save(os.path.join('F:\hmg', method, 'picture.jpg'))
+    pic.save(os.path.join(output_dir, 'picture.jpg'))
     print('120s 后关机')
-    os.system('shutdown /s /t 120')
+    t.sleepseconds(120)
+    os.system('shutdown /s /t 5')

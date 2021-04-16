@@ -1,5 +1,6 @@
 import time
 
+
 class Timer(object):
     def __init__(self):
         self.tot_time = 0.
@@ -22,3 +23,9 @@ class Timer(object):
             return self.average_time
         else:
             return self.diff
+
+    def sleepseconds(self,s):
+        print("等待%d s。。。"% s)
+        for i in range(1,s+1):
+            print("%d s..." % i)
+            time.sleep(1)
