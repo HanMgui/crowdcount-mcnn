@@ -4,10 +4,12 @@ from models import MCNN,MCNNandMBv1
 
 
 class CrowdCounter(nn.Module):
-    def __init__(self):
-        super(CrowdCounter, self).__init__()        
-        # self.DME = MCNN()
-        self.DME = MCNNandMBv1()
+    def __init__(self, modelname=''):
+        super(CrowdCounter, self).__init__()
+        if modelname == 'mcnn':
+            self.DME = MCNN()
+        elif modelname == 'MCNNandMBv1':
+            self.DME = MCNNandMBv1()
         self.loss_fn = nn.MSELoss()
         
     @property

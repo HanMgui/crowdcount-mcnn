@@ -181,7 +181,7 @@ try:
     issuccss = True
 finally:
     if issuccss:
-        torch.save({'net': net, 'best_model': best_model}, os.path.join(output_dir, 'net.hmg'))
+        torch.save({'net': net}, os.path.join(output_dir, best_model+'_net.hmg'))
         if os.path.exists(os.path.join(output_dir, 'xunliandata.hmg')):
             os.remove(os.path.join(output_dir, 'xunliandata.hmg'))
         # 复制最好的和最后的net
