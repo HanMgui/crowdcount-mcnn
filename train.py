@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import sys
 import shutil
+import traceback
 
 from src.crowd_count import CrowdCounter
 from src import network
@@ -30,9 +31,10 @@ def log_print(text, color=None, on_color=None, attrs=None):
         print(text)
 
 # method = 'mcnn'
-method = 'mcnnandmnv1'
+# method = 'mcnnandmnv1'
+method = 'MCNNandMBv1-1'
 dataset_name = 'shtechA'
-output_dir = '../saved_models/'
+output_dir = '../saved_models/'#下面的代码在后面加了method
 netparams_dir = './saved_net/'
 
 train_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/train'    #训练集
@@ -41,8 +43,10 @@ val_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/val'       
 val_gt_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/val_den'  # gt ground truth
 
 # training configuration
-start_step = 0
-end_step = 2000
+# start_step = 0
+# end_step = 2000
+start_step = 2001
+end_step = 3000
 lr = 0.00001
 momentum = 0.9
 disp_interval = 1000
@@ -62,14 +66,18 @@ if rand_seed is not None:
     torch.cuda.manual_seed(rand_seed)
 
 # load net
-net = CrowdCounter()
-network.weights_normal_init(net, dev=0.01)
+net = CrowdCounter(method)
+network.load_net('../final_models/MCNNandMBv1-1_shtechA_2000.h5',net)
+# network.weights_normal_init(net, dev=0.01)
 net.cuda()
 net.train()
 
 params = list(net.parameters())
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=lr)
 
+if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
+os.path.join(output_dir,method)
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 if not os.path.exists(netparams_dir):
@@ -92,16 +100,15 @@ train_loss = 0
 step_cnt = 0
 re_cnt = False
 t = Timer()
-t.sleepseconds(1)
-print('dsa')
+
 # t.tic()
-ifpre_load = True
+ifpre_load = False
 data_loader = ImageDataLoader(train_path, train_gt_path, shuffle=True, gt_downsample=True, pre_load=ifpre_load)
 data_loader_val = ImageDataLoader(val_path, val_gt_path, shuffle=False, gt_downsample=True, pre_load=ifpre_load)
 best_mae = sys.maxsize
 best_mse = best_mae
 best_model = -1
-is_continue_train = True
+is_continue_train = False
 if is_continue_train and os.path.exists(os.path.join(output_dir, 'xunliandata.hmg')):
     checkpoint = torch.load(os.path.join(output_dir, 'xunliandata.hmg'))
     train_loss = checkpoint['train_loss']
@@ -116,7 +123,6 @@ t.tic()
 issuccss = False
 try:
     for epoch in range(start_step, end_step + 1):
-        duration = t.toc(average=False)
         t.tic()
         step = -1
         train_loss = 0
@@ -133,7 +139,7 @@ try:
             optimizer.step()
 
             if step % disp_interval == 0:
-                # duration = t.toc(average=False)
+                duration = t.toc(average=False)
                 # fps = step_cnt / duration
                 gt_count = np.sum(gt_data)
                 density_map = density_map.data.cpu().numpy()
@@ -144,11 +150,11 @@ try:
                 log_text = 'epoch: %4d, step %4d, Time: %4fs, gt_cnt: %4.1f, et_cnt: %4.1f' % \
                            (epoch,      step,   duration,    gt_count,       et_count)
                 log_print(log_text, color='green', attrs=['bold'])
-                # re_cnt = True
+                re_cnt = True
 
-            # if re_cnt:
-            # t.tic()
-            # re_cnt = False
+            if re_cnt:
+                t.tic()
+                re_cnt = False
 
         if epoch % 2 == 0:
             save_name = os.path.join(output_dir, '{}_{}_{}.h5'.format(method, dataset_name, epoch))
@@ -179,6 +185,8 @@ try:
                             'best_model': best_model
                             }, os.path.join(output_dir, 'xunliandata.hmg'))
     issuccss = True
+except BaseException as e:
+    traceback.print_exc()
 finally:
     if issuccss:
         torch.save({'net': net}, os.path.join(output_dir, best_model+'_net.hmg'))

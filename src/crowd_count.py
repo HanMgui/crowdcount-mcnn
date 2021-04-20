@@ -1,15 +1,20 @@
 import torch.nn as nn
 import network
-from models import MCNN,MCNNandMBv1
-
+import models
 
 class CrowdCounter(nn.Module):
     def __init__(self, modelname=''):
         super(CrowdCounter, self).__init__()
-        if modelname == 'mcnn':
-            self.DME = MCNN()
-        elif modelname == 'MCNNandMBv1':
-            self.DME = MCNNandMBv1()
+        global selfmodelname
+        if modelname != '':
+             selfmodelname= modelname
+        assert selfmodelname != ''
+        if selfmodelname == 'mcnn':
+            self.DME = models.MCNN()
+        elif selfmodelname == 'MCNNandMBv1':
+            self.DME = models.MCNNandMBv1()
+        elif selfmodelname == 'MCNNandMBv1-1':
+            self.DME =models.MCNNandMBv1_1()
         self.loss_fn = nn.MSELoss()
         
     @property
