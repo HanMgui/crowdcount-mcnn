@@ -39,8 +39,10 @@ netparams_dir = './saved_net/'
 
 train_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/train'    #训练集
 train_gt_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/train_den'  # density
-val_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/val'        #验证集
-val_gt_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/val_den'  # gt ground truth
+# train_path = '../data/original/shanghaitech/part_A_final/train_data/true_crowd_counting/train_img/'    #训练集
+# train_gt_path = '../data/original/shanghaitech/part_A_final/train_data/true_crowd_counting/train_gt/'  # density
+val_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/val/'        #验证集
+val_gt_path = '../data/formatted_trainval/shanghaitech_part_A_patches_9/val_den/'  # gt ground truth
 
 # training configuration
 # start_step = 0
@@ -103,8 +105,9 @@ t = Timer()
 
 # t.tic()
 ifpre_load = False
-data_loader = ImageDataLoader(train_path, train_gt_path, shuffle=True, gt_downsample=True, pre_load=ifpre_load)
-data_loader_val = ImageDataLoader(val_path, val_gt_path, shuffle=False, gt_downsample=True, pre_load=ifpre_load)
+datasettype= 'csv'
+data_loader = ImageDataLoader(train_path, train_gt_path, shuffle=True, gt_downsample=True, pre_load=ifpre_load,dataset=datasettype)
+data_loader_val = ImageDataLoader(val_path, val_gt_path, shuffle=False, gt_downsample=True, pre_load=ifpre_load,dataset=datasettype)
 best_mae = sys.maxsize
 best_mse = best_mae
 best_model = -1
@@ -121,6 +124,7 @@ if is_continue_train and os.path.exists(os.path.join(output_dir, 'xunliandata.hm
     best_model = checkpoint['best_model']
 t.tic()
 issuccss = False
+hismae_dir=os.path.join(output_dir,method+'.txt')  #mae的历史信息txt
 try:
     for epoch in range(start_step, end_step + 1):
         t.tic()
@@ -161,6 +165,10 @@ try:
             network.save_net(save_name, net)
             # calculate error on the validation dataset
             mae, mse = evaluate_model(save_name, data_loader_val)
+            f = open(hismae_dir, 'a')
+            s = '%d:%.2f\n'%(epoch,mae)
+            f.write(s)
+            f.close()
             if mae < best_mae:
                 best_mae = mae
                 best_mse = mse
