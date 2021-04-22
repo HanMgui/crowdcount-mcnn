@@ -56,6 +56,30 @@ class Block(nn.Module):
             out = self.relu2(self.bn2(self.conv2(out)))
         return out
 
+class Block2(nn.Module):
+    '''Depthwise conv + Pointwise conv'''
+    def __init__(self, in_planes, out_planes, kernel_size=3,stride=1,same_padding=True,bn=False):
+        super(Block2, self).__init__()
+        padding = 1 if same_padding else 0
+        # Depthwise 卷积，3*3 的卷积核，分为 in_planes，即各层单独进行卷积
+        # 输入为in_planes,输出也为in_planes
+        for _ in range(0, int(kernel_size / 2)):
+            self.conv1 = nn.Conv2d(in_planes, in_planes, kernel_size=3, stride=stride, padding=padding,
+                                   groups=in_planes, bias=False)
+        self.bn1 = nn.BatchNorm2d(in_planes)
+        # Pointwise 卷积，1*1 的卷积核
+        self.conv2 = nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=1, padding=0, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_planes, eps=0.001, momentum=0, affine=True) if bn else None
+        self.relu1 = nn.ReLU(inplace=True)
+        self.relu2 = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        out = self.relu1(self.bn1(self.conv1(x)))
+        if self.bn2 == None:
+            out = self.relu2(self.conv2(out))
+        else:
+            out = self.relu2(self.bn2(self.conv2(out)))
+        return out
 
 def save_net(fname, net):
     import h5py

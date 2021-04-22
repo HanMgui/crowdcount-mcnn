@@ -14,7 +14,9 @@ class CrowdCounter(nn.Module):
         elif selfmodelname == 'MCNNandMBv1':
             self.DME = models.MCNNandMBv1()
         elif selfmodelname == 'MCNNandMBv1-1':
-            self.DME =models.MCNNandMBv1_1()
+            self.DME = models.MCNNandMBv1_1()
+        elif selfmodelname == 'MCNNandMBv1-2':
+            self.DME = models.MCNNandMBv1_2
         self.loss_fn = nn.MSELoss()
         
     @property
